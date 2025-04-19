@@ -30,7 +30,6 @@ const ChatPage = () => {
         };
 
         socket.onmessage = (event) => {
-            console.log("Tin nhắn từ server:", event.data);
             setMessages((prev) => [
                 ...prev,
                 { sender: "bot", text: event.data },
@@ -67,7 +66,7 @@ const ChatPage = () => {
             <Header />
             <div className="chat-wrapper">
                 <h2 className="chat-title">💬 Trò chuyện trực tuyến</h2>
-                <div className="chat-box">
+                <div className="chat-box" style={{whiteSpace: 'pre-wrap'}}>
                     {messages.map((msg, idx) => (
                         <Message key={idx} sender={msg.sender} text={msg.text} />
                     ))}

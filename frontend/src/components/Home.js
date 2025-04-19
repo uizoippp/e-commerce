@@ -14,6 +14,10 @@ const ProductList = () => {
             .catch((error) => console.error("Lỗi khi gọi API:", error));
     }, []);
 
+    const handleCheckDetail = async (idProduct) => {
+        navigate(`/productdetail/${idProduct}`);
+    };
+
     const handleBuyProduct = async (product) => {
         if (!localStorage.getItem("token")) {
             alert('Hãy đăng nhập trước khi mua hàng!');
@@ -47,10 +51,10 @@ const ProductList = () => {
                 <div key={product.id} className="col-sm-6 col-md-4 col-lg-3">
                     <div className="box">
                         <div className="img-box">
-                            <img src={`http://127.0.0.1:8000/${product.image_url}`} alt={product.name} />
+                            <img style={{cursor: 'pointer'}} onClick={() => handleCheckDetail(product.id)} src={`http://127.0.0.1:8000/${product.image_url}`} alt={product.name} />
                         </div>
                         <div className="detail-box">
-                            <h6>{product.name}</h6>
+                            <h6 style={{cursor: 'pointer'}} onClick={() => handleCheckDetail(product.id)}>{product.name}</h6>
                             <h6>
                                 Price<br />
                                 <span>{product.price} VND</span>

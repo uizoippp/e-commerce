@@ -11,6 +11,7 @@ import NotFound404 from '../components/NotFound404';
 import AuthenRoute from "../features/auth/AuthRoute";
 import ChatPage from "../components/Chat";
 import PaymentHistory from "../components/PaymentHistory";
+import ProductDetailPage from "../components/ProductDetail";
 import CrawlTool from "../components/Crawl";
 import StoreCrawl from "../components/StoreCrawl";
 
@@ -45,6 +46,10 @@ function RouteProject() {
     {
       path: '/register',
       element: <Register />,
+    },
+    {
+      path: '/productdetail/:id',
+      element: <ProductDetailPage />,
     },
     {
       path: '/cart',

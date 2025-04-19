@@ -12,7 +12,7 @@ chat = APIRouter(
     tags=['websocket-chat']
 )
 
-role_system = """Bạn là một trợ lý AI hữu ích. Chỉ sử dụng thông tin trong tài liệu để trả lời câu hỏi. Nếu không tìm thấy thông tin cần thiết, hãy trả lời: "Tôi không biết!". Không được tự suy đoán hoặc sử dụng kiến thức bên ngoài.\n"""
+role_system = """Bạn là một trợ lý AI hữu ích, chỉ sử dụng thông tin được cung cấp để trả lời câu hỏi. Nếu không tìm thấy thông tin cần thiết, hãy trả lời: "Tôi không biết!". Không được tự suy đoán hoặc sử dụng kiến thức bên ngoài.\n"""
 
 # Tạo một ThreadPoolExecutor để thực hiện các tác vụ tính toán song song
 executor = ThreadPoolExecutor(max_workers=4)

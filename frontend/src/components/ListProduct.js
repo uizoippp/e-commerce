@@ -18,6 +18,10 @@ const Products = () => {
             });
     }, []);
 
+    const handleCheckDetail = (idProduct) => {
+        navigate(`/productdetail/${idProduct}`);
+    };
+
     const handleBuyProduct = async (product, e) => {
         e.preventDefault();
         if (!localStorage.getItem("token")) {
@@ -42,10 +46,10 @@ const Products = () => {
             );
             alert("Đặt hàng thành công!");
         } catch (error) {
-            alert("Đặt hàng thất bại: " + error.response?.data?.detail || "Lỗi không xác định");
+            alert("Đặt hàng thất bại: " + error.response.data.detail || "Lỗi không xác định");
         }
     };
-    
+
     return (
         <>
             <section className="shop_section layout_padding">
@@ -59,30 +63,28 @@ const Products = () => {
                         {products.map((product) => (
                             <div key={product.id} className="col-sm-6 col-md-4 col-lg-3">
                                 <div className="box">
-                                    <a href="">
-                                        <div className="img-box">
-                                            <img src={`http://127.0.0.1:8000/${product.image_url}`} alt="" />
-                                        </div>
-                                        <div className="detail-box">
-                                            <h6>
-                                                {product.name}
-                                            </h6>
-                                            <h6>
-                                                Price <br />
-                                                <span>
-                                                    {product.price}VND
-                                                </span>
-                                            </h6>
-                                        </div>
-                                        <button onClick={(e) => handleBuyProduct(product, e)}>
-                                            Mua
-                                        </button>
-                                        <div className="new">
+                                    <div className="img-box">
+                                        <img style={{ cursor: 'pointer' }} onClick={() => handleCheckDetail(product.id)} src={`http://127.0.0.1:8000/${product.image_url}`} alt="" />
+                                    </div>
+                                    <div className="detail-box">
+                                        <h6 style={{ cursor: 'pointer' }} onClick={() => handleCheckDetail(product.id)}>
+                                            {product.name}
+                                        </h6>
+                                        <h6>
+                                            Price <br />
                                             <span>
-                                                New
+                                                {product.price}VND
                                             </span>
-                                        </div>
-                                    </a>
+                                        </h6>
+                                    </div>
+                                    <button onClick={(e) => handleBuyProduct(product, e)}>
+                                        Mua
+                                    </button>
+                                    <div className="new">
+                                        <span>
+                                            New
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         ))}

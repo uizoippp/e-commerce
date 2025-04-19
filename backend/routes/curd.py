@@ -39,8 +39,8 @@ async def create_new_product(name: str = Form(...), description: str = Form(...)
     return data
 
 @product_route.get('/get/{id}', response_model=Product)
-async def get_product_by_id(product_id: int, db: Session = Depends(get_db)) -> dict:
-    data = db.query(product).filter(product.id == product_id).first()
+async def get_product_by_id(id: int, db: Session = Depends(get_db)) -> dict:
+    data = db.query(product).filter(product.id == id).first()
     if not data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

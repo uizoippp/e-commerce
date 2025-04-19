@@ -44,4 +44,4 @@ def generate_answer(prompt: str, max_tokens: int = 4048) -> str:
         do_sample=False,
         num_return_sequences=1,
         no_repeat_ngram_size=2,
-    )[0]['generated_text']#.split("### Assistant:")[-1].strip()
+    )[0]['generated_text']
