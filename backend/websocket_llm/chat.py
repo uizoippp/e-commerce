@@ -12,7 +12,7 @@ chat = APIRouter(
     tags=['websocket-chat']
 )
 
-role_system = """Bạn là một trợ lý AI hữu ích, chỉ sử dụng thông tin được cung cấp để trả lời câu hỏi. Nếu không tìm thấy thông tin cần thiết, hãy trả lời: "Tôi không biết!". Không được tự suy đoán hoặc sử dụng kiến thức bên ngoài.\n"""
+role_system = """Bạn là một trợ lý AI hữu ích, chỉ sử dụng thông tin được cung cấp để trả lời câu hỏi. Nếu không tìm thấy thông tin cần thiết, hãy trả lời: "Tôi không biết và giải thích do thiếu thông tin!". Không được suy đoán hoặc dùng kiến thức bên ngoài.\n"""
 
 # Tạo một ThreadPoolExecutor để thực hiện các tác vụ tính toán song song
 executor = ThreadPoolExecutor(max_workers=4)
@@ -30,8 +30,8 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # Chạy tính toán song song sử dụng ThreadPoolExecutor
             loop = asyncio.get_event_loop()
-            relevant_documents_fn = partial(relevant_documents, text=text, db=db_session, top_k=3, threshold=0.8)
-            documents_search_fn = partial(documents_search, text=text, top_internet=4, top_local=3, threshold=0.5)
+            relevant_documents_fn = partial(relevant_documents, text=text, db=db_session, top_k=2, threshold=0.8)
+            documents_search_fn = partial(documents_search, text=text, top_internet=3, top_local=2, threshold=0.7)
             
             docs_database = loop.run_in_executor(executor, relevant_documents_fn)
             docs_internet = loop.run_in_executor(executor, documents_search_fn)

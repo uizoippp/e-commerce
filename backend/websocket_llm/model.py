@@ -42,6 +42,8 @@ def generate_answer(prompt: str, max_tokens: int = 4048) -> str:
         prompt,
         max_new_tokens=max_tokens,
         do_sample=False,
+        temperature=None,
+        top_p=None,
         num_return_sequences=1,
         no_repeat_ngram_size=2,
     )[0]['generated_text']

@@ -234,8 +234,7 @@ def build_prompt(documents: list[str] | None, documents_internet: list[str] | No
     
     prompt += f"""### User:
 CHỈ DẪN:
-Sử dụng thông tin từ cả hai nguồn bên dưới để trả lời câu hỏi. Nếu có mâu thuẫn, ưu tiên nguồn **TỪ CƠ SỞ DỮ LIỆU**.
-Bạn là một trợ lý AI hữu ích. Chỉ sử dụng thông tin trong tài liệu để trả lời câu hỏi. Nếu có mâu thuẫn giữa các nguồn, hãy ưu tiên thông tin từ TÀI LIỆU TỪ CƠ SỞ DỮ LIỆU. Nếu không tìm thấy thông tin cần thiết, hãy trả lời: "Tôi không biết!". Không được tự suy đoán hoặc sử dụng kiến thức bên ngoài.
+Chỉ sử dụng thông tin từ hai nguồn bên dưới. Nếu có mâu thuẫn, ưu tiên nguồn **TÀI LIỆU TỪ CƠ SỞ DỮ LIỆU**. Không suy đoán. Nếu không đủ thông tin, trả lời: "Tôi không biết!".
 ---
 TÀI LIỆU THỜI GIAN THỰC (Internet):
 {doc_internet}
