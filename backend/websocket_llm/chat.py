@@ -14,9 +14,6 @@ chat = APIRouter(
 
 role_system = """Bạn là một trợ lý AI hữu ích, chỉ sử dụng thông tin được cung cấp để trả lời câu hỏi. Nếu không tìm thấy thông tin cần thiết, hãy trả lời: "Tôi không biết và giải thích do thiếu thông tin!". Không được suy đoán hoặc dùng kiến thức bên ngoài.\n"""
 
-# Tạo một ThreadPoolExecutor để thực hiện các tác vụ tính toán song song
-executor = ThreadPoolExecutor(max_workers=4)
-
 @chat.websocket("/ws/chatroom")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -25,20 +22,27 @@ async def websocket_endpoint(websocket: WebSocket):
     try: 
         while True:
             text = await websocket.receive_text()
-        
             db_session = next(get_db())
 
-            # Chạy tính toán song song sử dụng ThreadPoolExecutor
+            list_query = decompose_prompt(query=text)
             loop = asyncio.get_event_loop()
-            relevant_documents_fn = partial(relevant_documents, text=text, db=db_session, top_k=2, threshold=0.8)
-            documents_search_fn = partial(documents_search, text=text, top_internet=3, top_local=2, threshold=0.7)
-            
-            docs_database = loop.run_in_executor(executor, relevant_documents_fn)
-            docs_internet = loop.run_in_executor(executor, documents_search_fn)
 
-            docs_db, docs_inter = await asyncio.gather(docs_database, docs_internet)
+            task = []
+            with ThreadPoolExecutor() as executor:
+                for q in list_query:
+                    relevant_documents_fn = partial(relevant_documents, text=q, db=db_session, top_k=2, threshold=0.8)
+                    documents_search_fn = partial(documents_search, text=q, top_internet=3, top_local=2, threshold=0.7)
+                
+                    docs_database = loop.run_in_executor(executor, relevant_documents_fn)
+                    docs_internet = loop.run_in_executor(executor, documents_search_fn)
+                    
+                    task.append(asyncio.gather(docs_database, docs_internet))
             
-            prompt = build_prompt(documents=docs_db, documents_internet=docs_inter, question=text, system_msg=role_system)
+            results = await asyncio.gather(*task)
+            
+            doc_db, doc_inter = zip(*results)
+            # print(doc_inter)
+            prompt = build_prompt(documents=doc_db, documents_internet=doc_inter, question=text, system_msg=role_system)
             response = generate_answer(prompt=prompt)
 
             print(response)
@@ -46,4 +50,5 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.send_text(f"{response}")
 
     except WebSocketDisconnect:
+        
         print('Ngat ket noi')

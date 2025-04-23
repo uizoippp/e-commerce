@@ -3,13 +3,16 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import numpy as np
 import faiss
 from typing import Optional, List, Literal, Dict
-from .model import convert_text_to_tokenizer
+from .model import convert_text_to_tokenizer, chainlang
 import requests
 from bs4 import BeautifulSoup
 from duckduckgo_search import DDGS
 from collections import defaultdict
 from sqlalchemy.orm import Session
 from database.database import chunks, webs
+from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+import re
 
 # Hàm tính độ tương đồng với FAISS
 def find_similar_vectors(list_vectors: list, vector: list, top_k: int = 3) -> Optional[tuple[list[float], list[int]]]:
@@ -163,7 +166,7 @@ def extract_text_from_url(url: str) -> tuple[str, str]:
         print(f"⚠️ Lỗi khi đọc {url}: {e}")
         return "", "" 
        
-def documents_search(text: str, top_internet: int = 4, top_local: int = 3, threshold: float = 0.70) -> Dict[str, str]:
+def documents_search(text: str, top_internet: int = 4, top_local: int = 3, threshold: float = 0.70) -> Dict[str, str] | None:
     search_results = search_urls(text, max_results=top_internet)
     chunks = []
     for url in search_results:
@@ -218,15 +221,20 @@ def documents_search(text: str, top_internet: int = 4, top_local: int = 3, thres
         if title: 
             t = title
         documents.append({'title': t, 'text': numbered_text})
-    return documents
+    
+    if len(documents) != 0:
+        return documents
+    return None
 
 def build_prompt(documents: list[str] | None, documents_internet: list[str] | None, question: str, system_msg: str = None) -> str:
     doc_text = ""
     doc_internet = ""
+    documents = documents[0]
+    documents_internet = documents_internet[0]
     if documents:
-        doc_text = "\n".join([f"{i+1}. Tiêu đề: {doc['title']}. Nội dung: {doc['text']}" for i, doc in enumerate(documents)])
+        doc_text = "\n".join([f"{i+1}. Tiêu đề: {doc['title']}. Nội dung: {doc['text']}" for i, doc in enumerate(documents) if doc is not None])
     if documents_internet:
-        doc_internet = "\n".join([f"{i+1}. Tiêu đề: {doc['title']}. Nội dung: {doc['text']}" for i, doc in enumerate(documents_internet)])
+        doc_internet = "\n".join([f"{i+1}. Tiêu đề: {doc['title']}. Nội dung: {doc['text']}" for i, doc in enumerate(documents_internet) if doc is not None])
 
     prompt = ""
     if system_msg:
@@ -234,7 +242,7 @@ def build_prompt(documents: list[str] | None, documents_internet: list[str] | No
     
     prompt += f"""### User:
 CHỈ DẪN:
-Chỉ sử dụng thông tin từ hai nguồn bên dưới. Nếu có mâu thuẫn, ưu tiên nguồn **TÀI LIỆU TỪ CƠ SỞ DỮ LIỆU**. Không suy đoán. Nếu không đủ thông tin, trả lời: "Tôi không biết!".
+Chỉ sử dụng thông tin từ hai nguồn bên dưới. Nếu có mâu thuẫn, ưu tiên nguồn **TÀI LIỆU TỪ CƠ SỞ DỮ LIỆU**. Không suy đoán. Nếu không đủ thông tin, trả lời: "Tôi không biết và giải thích lý do".
 ---
 TÀI LIỆU THỜI GIAN THỰC (Internet):
 {doc_internet}
@@ -248,3 +256,46 @@ Hãy trả lời ngắn gọn, súc tích, không vượt quá 3-4 câu. {questi
 ### Assistant:
 """
     return prompt
+
+def decompose_prompt(query: str) -> list[str]:
+
+    data = PromptTemplate.from_template(f"""
+### Nhiệm vụ:
+Phân tích CÂU HỎI GỐC và viết ra chính xác BA CÂU HỎI CON theo đúng định dạng dưới đây.
+Không được phép có bất kỳ câu trả lời nào.                                   
+### Yêu cầu:
+- Mỗi CÂU HỎI CON là một câu hỏi đơn giản, rõ ràng.
+- Có thể dùng để tìm kiếm độc lập.
+- KHÔNG ĐƯỢC PHÉP trả lời câu hỏi.
+- Bắt buộc phải bắt đầu bằng số thứ tự: "1.", "2.", "3."
+- Nội dung phải giữ đúng nghĩa với CÂU HỎI GỐC.
+                                        
+### Ví dụ:
+CÂU HỎI GỐC: So sánh Python và Java
+CÂU HỎI CON:
+1. Python là gì?
+2. Java là gì?
+3. Sự khác biệt chính giữa Python và Java là gì?
+
+---
+
+### CÂU HỎI GỐC: {query}
+CÂU HỎI CON:
+""")
+
+    # Output parser
+    parser = StrOutputParser()
+
+    # Tạo Chain
+    query_decomposition_chain = (
+        data
+        | chainlang  # chính là LLaMA3.2-1B đã wrap
+        | parser
+    )
+    
+    result = query_decomposition_chain.invoke({"query": query})
+    index = result.find('###')
+    if index != -1:
+        return re.findall(r'\d+\.\s+(.*)', result[:index].strip())
+    
+    return re.findall(r"\d+\.\s+(.*)", result)

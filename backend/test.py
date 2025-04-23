@@ -11,6 +11,6 @@ if __name__ == "__main__":
 
     # print(generate_answer(prompt=prompt))
 
-    text = "Món khoái khẩu của Nguyễn Xuân Son."
-    docs_internet = documents_search(text=text, top_internet=4, top_local=5, threshold=0.6)
+    text = "Sự khác biệt về cách điều hành đất nước giữa Joe Biden và Donald Trump?"
+    print(decompose_prompt(query=text))
 
