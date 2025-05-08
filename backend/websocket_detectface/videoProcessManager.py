@@ -24,7 +24,7 @@ class VideoProcessing(object):
         self.max_num_faces = 1 # Số lượng khuôn mặt được nhận dạng tối đa
 
         # Đọc model yolo trong thư mục
-        self.model = YOLO('websocket/model/yolov11n-face.pt')
+        self.model = YOLO('websocket_detectface/model/yolov11n-face.pt')
         
         # Khởi tạo MediaPipe để tìm các đặc trưng         
         mp_face_mesh =mp.solutions.face_mesh

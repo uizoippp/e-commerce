@@ -14,6 +14,7 @@ import PaymentHistory from "../components/PaymentHistory";
 import ProductDetailPage from "../components/ProductDetail";
 import CrawlTool from "../components/Crawl";
 import StoreCrawl from "../components/StoreCrawl";
+import FaceID from '../components/FaceID';
 
 function RouteProject() {
 
@@ -66,6 +67,11 @@ function RouteProject() {
           <PaymentHistory />
         </AuthenRoute>
       ,
+    },
+    {
+      path: '/loginFaceId',
+      element:
+        <FaceID />
     },
     {
       path: '/Chat',
